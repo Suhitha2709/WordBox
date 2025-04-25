@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% extends "base.html" %}
+
+{% block content %}
+<h1>📘 WordBox - Personal Dictionary</h1>
+
+<input id="wordInput" placeholder="Search a word..." />
+<button onclick="searchWord()">Search</button>
+
+<p id="meaningDisplay"></p>
+<p id="examplesDisplay" style="white-space: pre-line;"></p>
+
+<textarea id="customMeaning" placeholder="Write your own meaning (optional)..."
+          rows="4" style="width: 100%; display: none; margin-bottom: 10px;"></textarea>
+
+<button id="saveBtn" onclick="saveWord()" style="display:none;">Save</button>
+
+<h2>📚 Saved Words</h2>
+
+<input id="searchSavedWords" type="text" placeholder="Search saved words..." oninput="filterSavedWords()" />
+<ul id="savedWords"></ul>
+
+<script>
+    async function searchWord() {
+        const word = document.getElementById('wordInput').value;
+        const res = await fetch(`/wordbox/search/?word=${word}`);
+        const data = await res.json();
+
+        const meaningDisplay = document.getElementById('meaningDisplay');
+        const examplesDisplay = document.getElementById('examplesDisplay');
+        const customMeaningBox = document.getElementById('customMeaning');
+
+        if (data.meaning) {
+            meaningDisplay.innerText = `Pronunciation: ${data.pronunciation}\n\n${data.meaning}`;
+            customMeaningBox.value = '';
+            customMeaningBox.style.display = 'block';
+
+            if (data.examples && data.examples.length > 0) {
+                examplesDisplay.innerText =
+                    'Examples:\n' + data.examples.map((ex, i) => `${i + 1}. ${ex}`).join('\n');
+            } else {
+                examplesDisplay.innerText = '';
+            }
+
+            document.getElementById('saveBtn').style.display = 'inline';
+        } else {
+            meaningDisplay.innerText = 'Not found.';
+            examplesDisplay.innerText = '';
+            customMeaningBox.style.display = 'none';
+            document.getElementById('saveBtn').style.display = 'none';
+        }
+    }
+
+    async function saveWord() {
+        const word = document.getElementById('wordInput').value;
+        const customMeaning = document.getElementById('customMeaning').value.trim();
+        const defaultMeaning = document.getElementById('meaningDisplay').innerText;
+        const meaningToSave = customMeaning || defaultMeaning;
+
+        const formData = new FormData();
+        formData.append('word', word);
+        formData.append('meaning', meaningToSave);
+
+        const res = await fetch('/wordbox/save/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: formData,
+            credentials: 'same-origin'
+        });
+
+        const result = await res.json();
+        alert(result.message || result.error);
+        loadSavedWords();
+    }
+
+    async function loadSavedWords() {
+        const searchQuery = document.getElementById('searchSavedWords').value;
+        const res = await fetch(`/wordbox/list/?search=${searchQuery}`);
+        const words = await res.json();
+        const list = document.getElementById('savedWords');
+        list.innerHTML = '';
+
+        words.forEach(item => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <strong>${item.word}</strong>: ${item.meaning}
+                <button onclick="deleteWord('${item.word}')">🗑️ Delete</button>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    async function deleteWord(word) {
+        const confirmed = confirm(`Are you sure you want to delete "${word}"?`);
+        if (!confirmed) return;
+
+        const res = await fetch(`/wordbox/delete/?word=${encodeURIComponent(word)}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            },
+            credentials: 'same-origin'
+        });
+
+        const result = await res.json();
+        alert(result.message || result.error);
+        loadSavedWords();
+    }
+
+    function filterSavedWords() {
+        const query = document.getElementById('searchSavedWords').value.toLowerCase();
+        const listItems = document.querySelectorAll('#savedWords li');
+
+        listItems.forEach(item => {
+            const word = item.querySelector('strong').innerText.toLowerCase();
+            item.style.display = word.includes(query) ? 'block' : 'none';
+        });
+    }
+
+    function getCSRFToken() {
+        return document.cookie.split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+    }
+
+    window.onload = loadSavedWords;
+</script>
+{% endblock %}
+
+</body>
+</html>
