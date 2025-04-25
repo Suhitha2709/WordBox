@@ -1,0 +1,31 @@
+<!-- templates/list.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Saved Words - WordBox</title>
+</head>
+<body>
+    <h1>Your Saved Words</h1>
+
+    <form method="get" action="{% url 'search_saved' %}">
+        <input type="text" name="q" placeholder="Search saved words">
+        <button type="submit">Search</button>
+    </form>
+
+    {% if words %}
+        <ul>
+            {% for word in words %}
+                <li>
+                    <strong>{{ word.word }}</strong><br>
+                    {{ word.meaning }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No words saved yet.</p>
+    {% endif %}
+
+    <a href="{% url 'home' %}">Back to Home</a>
+</body>
+</html>
