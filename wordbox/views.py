@@ -8,6 +8,8 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
 
+def dashboard(request):
+    return render(request, 'home.html')
 def landing(request):
     if request.user.is_authenticated:
         return redirect('dashboard')  # make sure this name matches your url name
