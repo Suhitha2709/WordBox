@@ -122,7 +122,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 # settings.py
 
-LOGIN_REDIRECT_URL = 'home'
+
+LOGIN_REDIRECT_URL = '/wordbox/'  # or use reverse('dashboard')
+
 LOGOUT_REDIRECT_URL = 'logout'  # This uses logout.html
 
 
