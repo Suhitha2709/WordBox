@@ -51,6 +51,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'pd.urls'
+CSRF_TRUSTED_ORIGINS = ['https://wordbox.onrender.com']
+
 
 TEMPLATES = [
     {
