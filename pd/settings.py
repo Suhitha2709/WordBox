@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-r-9nr+gwg4jw^kb8ih+4t94c*9(7pu5is@k2p8!ug2-jxofi%n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['wordbox.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
